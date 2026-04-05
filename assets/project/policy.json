@@ -1,0 +1,38 @@
+{
+  "schemaVersion": {{SCHEMA_VERSION}},
+  "platform": "{{PLATFORM}}",
+  "dangerousCommandPatterns": [
+    "rm\\s+-rf\\s+(/|~)",
+    "curl\\s+[^|]+\\|\\s*(sh|bash|zsh)",
+    ":\\(\\)\\s*\\{\\s*:\\|:&\\s*\\};:",
+    "git\\s+reset\\s+--hard",
+    "git\\s+clean\\s+-fdx",
+    "dd\\s+if=",
+    "mkfs\\."
+  ],
+  "protectedPathPatterns": [
+    "\\.env(\\..+)?$",
+    "\\.pem$",
+    "\\.p12$",
+    "\\.key$",
+    "id_rsa$",
+    "id_ed25519$",
+    "secrets?/",
+    "credentials?/",
+    "tokens?/"
+  ],
+  "testIntegrityPatterns": {
+    "deniedShell": [
+      "--passWithNoTests",
+      "jest -u",
+      "vitest -u",
+      "npm test || true",
+      "pnpm test || true",
+      "bun test || true"
+    ],
+    "deniedPathRegexes": [
+      "(^|/)(__tests__|tests)(/|$)",
+      "\\.(test|spec)\\.[^.]+$"
+    ]
+  }
+}

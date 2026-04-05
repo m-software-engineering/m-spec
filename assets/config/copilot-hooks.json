@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "node \"./{{RUNTIME_ROOT}}/hooks/dangerous-command.mjs\"",
+        "cwd": ".",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "bash": "node \"./{{RUNTIME_ROOT}}/hooks/protect-secrets.mjs\"",
+        "cwd": ".",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "bash": "node \"./{{RUNTIME_ROOT}}/hooks/test-integrity.mjs\"",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

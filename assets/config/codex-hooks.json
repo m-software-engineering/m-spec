@@ -1,0 +1,23 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/{{RUNTIME_ROOT}}/hooks/dangerous-command.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/{{RUNTIME_ROOT}}/hooks/protect-secrets.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/{{RUNTIME_ROOT}}/hooks/test-integrity.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

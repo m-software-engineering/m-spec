@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+.DS_Store
+*.log
+task_plan.md
+findings.md
+progress.md

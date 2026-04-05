@@ -1,0 +1,33 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/{{RUNTIME_ROOT}}/hooks/dangerous-command.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/{{RUNTIME_ROOT}}/hooks/protect-secrets.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/{{RUNTIME_ROOT}}/hooks/test-integrity.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}
