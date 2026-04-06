@@ -10,6 +10,13 @@ m-spec is a TypeScript CLI that scaffolds and maintains a spec-driven workflow f
 - Validates generated assets and local setup.
 - Reconciles change-specific deltas back into source-of-truth specs.
 
+## Why this is aligned with Spec-Driven Development
+
+- **Spec-first workflow**: generated plan/spec/implement/optimize wrappers keep work anchored in `m-spec/changes/...` artifacts.
+- **Strict TDD helpers**: generated scripts now include `run-red.sh` (expects failing tests) and `run-green.sh` (expects passing tests).
+- **Lightweight optimization loop**: autoresearch templates include benchmark + checks + ratchet scripts so experiments can be kept/discarded consistently.
+- **Agent-agnostic scaffolding**: Codex skills, Claude agents, and Copilot agents/hooks are generated from the same workflow definitions.
+
 ## Requirements
 
 - Node.js 22+

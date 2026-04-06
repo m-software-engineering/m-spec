@@ -144,6 +144,11 @@ function buildSharedRuntimeFiles(config: ProjectConfig): GeneratedFile[] {
       relativePath: path.posix.join(runtimeRoot, "scripts", "run-red.sh"),
       content: readAsset("scripts/run-red.sh"),
       executable: true
+    },
+    {
+      relativePath: path.posix.join(runtimeRoot, "scripts", "run-green.sh"),
+      content: readAsset("scripts/run-green.sh"),
+      executable: true
     }
   ];
 
@@ -161,6 +166,11 @@ function buildSharedRuntimeFiles(config: ProjectConfig): GeneratedFile[] {
       {
         relativePath: path.posix.join(runtimeRoot, "templates", "autoresearch.checks.sh"),
         content: readAsset("templates/autoresearch.checks.sh"),
+        executable: true
+      },
+      {
+        relativePath: path.posix.join(runtimeRoot, "templates", "autoresearch.ratchet.sh"),
+        content: readAsset("templates/autoresearch.ratchet.sh"),
         executable: true
       }
     );
@@ -247,7 +257,7 @@ function workflowDefinitions(config: ProjectConfig): Array<{ slug: string; descr
     {
       slug: "m-spec-tdd",
       description: "Use whenever you implement behavior from an M-SPEC spec and need to enforce Red-Green-Refactor discipline.",
-      instructions: buildTddInstructions()
+      instructions: buildTddInstructions(config)
     },
     {
       slug: "m-spec-autoresearch",
@@ -332,8 +342,10 @@ function buildOptimizeInstructions(config: ProjectConfig): string {
   });
 }
 
-function buildTddInstructions(): string {
-  return readAsset("workflows/tdd.md");
+function buildTddInstructions(config: ProjectConfig): string {
+  return renderAsset("workflows/tdd.md", {
+    RUNTIME_ROOT: config.paths.runtimeRoot
+  });
 }
 
 function buildAutoresearchInstructions(config: ProjectConfig): string {
