@@ -22,6 +22,12 @@ m-spec is a TypeScript CLI that scaffolds and maintains a spec-driven workflow f
 - Node.js 22+
 - npm
 
+## Install globally from npm
+
+```bash
+npm i -g @m-software-engineering/m-spec
+```
+
 ## Install dependencies
 
 ```bash

@@ -1,5 +1,5 @@
 {
-  "name": "m-spec",
+  "name": "@m-software-engineering/m-spec",
   "version": "0.1.0",
   "description": "Lightweight spec-driven development framework for brownfield AI agent workflows.",
   "license": "MIT",
@@ -34,5 +34,9 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^4.0.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
