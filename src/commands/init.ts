@@ -10,6 +10,7 @@ import { buildAgentFiles, syncManagedInstructionFiles } from "../runtime/generat
 
 export async function runInit(options: InitOptions): Promise<ProjectConfig> {
   const rootDir = path.resolve(options.rootDir);
+  options.onProgress?.({ step: "scan", detail: `Scanning project at ${rootDir}` });
   const discoveredDomains = await discoverDomains(rootDir);
   const selectedDomains = options.domains
     ? normalizeDomainPaths(options.domains)
@@ -40,9 +41,13 @@ export async function runInit(options: InitOptions): Promise<ProjectConfig> {
   });
 
   const generatedFiles = [...buildBaseProjectFiles(config), ...buildAgentFiles(config)];
-  await writeGeneratedFiles(rootDir, generatedFiles);
-  await syncManagedInstructionFiles(rootDir, config);
+  options.onProgress?.({ step: "scaffold", detail: `Writing ${generatedFiles.length} managed files` });
+  await writeGeneratedFiles(rootDir, generatedFiles, options.onProgress);
+  options.onProgress?.({ step: "sync", detail: "Updating managed instruction files" });
+  await syncManagedInstructionFiles(rootDir, config, options.onProgress);
+  options.onProgress?.({ step: "config", detail: "Saving project configuration" });
   await saveProjectConfig(rootDir, config);
+  options.onProgress?.({ step: "done", detail: "Initialization complete" });
 
   return config;
 }
