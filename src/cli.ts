@@ -4,8 +4,13 @@ import { runInit } from "./commands/init.js";
 import { runUpdate } from "./commands/update.js";
 import { runDoctor } from "./commands/doctor.js";
 import { runReconcile } from "./commands/reconcile.js";
+import { resolveInteractiveCommand } from "./core/interactive.js";
+import { printBanner, printProgress } from "./core/ui.js";
 
 export async function runCli(argv = process.argv): Promise<void> {
+  const resolvedArgv = await resolveInteractiveCommand(argv);
+  printBanner();
+
   const program = new Command();
 
   program.name(APP_NAME).description("Lightweight spec-driven development framework for brownfield AI agent workflows.").version("0.1.0");
@@ -31,7 +36,8 @@ export async function runCli(argv = process.argv): Promise<void> {
         yes: Boolean(options.yes),
         browserTools: resolveBooleanOption(options.withBrowserTools, options.withoutBrowserTools),
         domainInstructions: resolveBooleanOption(options.withDomainInstructions, options.withoutDomainInstructions),
-        autoresearch: resolveBooleanOption(options.withAutoresearch, options.withoutAutoresearch)
+        autoresearch: resolveBooleanOption(options.withAutoresearch, options.withoutAutoresearch),
+        onProgress: (event) => event.detail && printProgress(event.detail)
       });
 
       console.log(`Initialized M-SPEC for ${config.agent} in ${targetPath}`);
@@ -42,7 +48,10 @@ export async function runCli(argv = process.argv): Promise<void> {
     .description("Re-generate managed files from the saved M-SPEC configuration")
     .argument("[path]", "Target directory", ".")
     .action(async (targetPath) => {
-      await runUpdate({ rootDir: targetPath });
+      await runUpdate({
+        rootDir: targetPath,
+        onProgress: (event) => event.detail && printProgress(event.detail)
+      });
       console.log(`Updated managed M-SPEC files in ${targetPath}`);
     });
 
@@ -71,7 +80,7 @@ export async function runCli(argv = process.argv): Promise<void> {
       written.forEach((item) => console.log(`Updated ${item}`));
     });
 
-  await program.parseAsync(argv);
+  await program.parseAsync(resolvedArgv);
 }
 
 function resolveBooleanOption(enabled: unknown, disabled: unknown): boolean | undefined {

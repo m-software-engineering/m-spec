@@ -4,7 +4,7 @@ import { mergeTomlFile } from "../core/toml.js";
 import { deepMerge } from "../core/json-merge.js";
 import { readJsonFile, writeJsonFile, writeTextFile } from "../core/fs.js";
 import { upsertManagedMarkdownFile } from "../core/output.js";
-import type { DomainConfig, GeneratedFile, ProjectConfig } from "../core/types.js";
+import type { DomainConfig, GeneratedFile, ProjectConfig, ProgressReporter } from "../core/types.js";
 
 export function buildAgentFiles(config: ProjectConfig): GeneratedFile[] {
   const files: GeneratedFile[] = [
@@ -19,19 +19,23 @@ export function buildAgentFiles(config: ProjectConfig): GeneratedFile[] {
   return files;
 }
 
-export async function syncManagedInstructionFiles(rootDir: string, config: ProjectConfig): Promise<void> {
+export async function syncManagedInstructionFiles(rootDir: string, config: ProjectConfig, onProgress?: ProgressReporter): Promise<void> {
+  onProgress?.({ step: "sync", detail: "Merging agent configuration files" });
   await syncAgentConfigFiles(rootDir, config);
 
   const sharedRootInstructions = buildRootInstructions(config);
 
   if (config.agent === "claude") {
     await upsertManagedMarkdownFile(rootDir, "CLAUDE.md", "root", sharedRootInstructions);
+    onProgress?.({ step: "file", detail: "updated: CLAUDE.md" });
   } else {
     await upsertManagedMarkdownFile(rootDir, "AGENTS.md", "root", sharedRootInstructions);
+    onProgress?.({ step: "file", detail: "updated: AGENTS.md" });
   }
 
   if (config.agent === "copilot") {
     await upsertManagedMarkdownFile(rootDir, ".github/copilot-instructions.md", "root", sharedRootInstructions);
+    onProgress?.({ step: "file", detail: "updated: .github/copilot-instructions.md" });
   }
 
   if (!config.features.domainInstructions) {
@@ -44,16 +48,19 @@ export async function syncManagedInstructionFiles(rootDir: string, config: Proje
         path.join(rootDir, ".claude/rules", `m-spec-${domainSlug(domain)}.md`),
         buildClaudeDomainRule(domain),
       );
+      onProgress?.({ step: "file", detail: `updated: .claude/rules/m-spec-${domainSlug(domain)}.md` });
       continue;
     }
 
     await upsertManagedMarkdownFile(rootDir, path.posix.join(domain.relativePath, "AGENTS.md"), `domain:${domainSlug(domain)}`, buildDomainInstructions(domain));
+    onProgress?.({ step: "file", detail: `updated: ${path.posix.join(domain.relativePath, "AGENTS.md")}` });
 
     if (config.agent === "copilot") {
       await writeTextFile(
         path.join(rootDir, ".github/instructions", `m-spec-${domainSlug(domain)}.instructions.md`),
         buildCopilotDomainInstruction(domain),
       );
+      onProgress?.({ step: "file", detail: `updated: .github/instructions/m-spec-${domainSlug(domain)}.instructions.md` });
     }
   }
 }

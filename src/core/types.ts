@@ -46,6 +46,13 @@ export interface GeneratedFile {
   executable?: boolean;
 }
 
+export interface ProgressEvent {
+  step: string;
+  detail?: string;
+}
+
+export type ProgressReporter = (event: ProgressEvent) => void;
+
 export interface InitOptions {
   rootDir: string;
   agent?: SupportedAgent | undefined;
@@ -54,10 +61,12 @@ export interface InitOptions {
   domainInstructions?: boolean | undefined;
   browserTools?: boolean | undefined;
   autoresearch?: boolean | undefined;
+  onProgress?: ProgressReporter | undefined;
 }
 
 export interface UpdateOptions {
   rootDir: string;
+  onProgress?: ProgressReporter | undefined;
 }
 
 export interface DoctorFinding {

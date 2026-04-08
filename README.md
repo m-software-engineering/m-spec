@@ -36,6 +36,12 @@ Use the development entrypoint:
 npm run dev -- <command> [options]
 ```
 
+Running without a command now opens an interactive command picker:
+
+```bash
+npm run dev
+```
+
 Common commands:
 
 ```bash
