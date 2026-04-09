@@ -4,6 +4,14 @@
   "description": "Lightweight spec-driven development framework for brownfield AI agent workflows.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m-software-engineering/m-spec.git"
+  },
+  "bugs": {
+    "url": "https://github.com/m-software-engineering/m-spec/issues"
+  },
+  "homepage": "https://github.com/m-software-engineering/m-spec#readme",
   "bin": {
     "m-spec": "dist/cli.js"
   },
@@ -22,7 +30,7 @@
     "changeset": "changeset",
     "dev": "tsx src/cli.ts",
     "prepack": "npm run build",
-    "release": "npm publish --provenance",
+    "release": "npm publish --access public --provenance",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",

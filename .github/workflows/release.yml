@@ -1,0 +1,133 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      publish_current_version:
+        description: Publish the current package.json version without applying changesets
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    name: Version and publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine release mode
+        id: release_mode
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          shopt -s nullglob
+          changesets=(.changeset/*.md)
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.publish_current_version }}" == "true" && ${#changesets[@]} -gt 0 ]]; then
+            echo "::error::publish_current_version=true cannot be used while pending changeset files exist."
+            exit 1
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.publish_current_version }}" == "true" ]]; then
+            echo "mode=publish-current" >> "$GITHUB_OUTPUT"
+          elif (( ${#changesets[@]} > 0 )); then
+            echo "mode=version-and-publish" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=skip" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Stop when there is nothing to release
+        if: steps.release_mode.outputs.mode == 'skip'
+        run: echo "No changeset files found and publish_current_version=false; skipping release."
+
+      - name: Verify npm token is configured
+        if: steps.release_mode.outputs.mode != 'skip'
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
+            echo "::error::Missing required repository secret NPM_TOKEN."
+            exit 1
+          fi
+
+      - name: Apply changesets
+        if: steps.release_mode.outputs.mode == 'version-and-publish'
+        run: npm run version-packages
+
+      - name: Validate release candidate
+        if: steps.release_mode.outputs.mode != 'skip'
+        run: |
+          npm run typecheck
+          npm test
+          npm run build
+          npm pack --dry-run
+
+      - name: Commit release files
+        if: steps.release_mode.outputs.mode == 'version-and-publish'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "::error::changeset version did not produce any release file changes."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json CHANGELOG.md .changeset
+          git commit -m "chore: release package [skip ci]"
+          git push origin HEAD:main
+
+      - name: Check npm version availability
+        if: steps.release_mode.outputs.mode != 'skip'
+        id: npm_version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+
+          if npm view "${package_name}@${package_version}" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "Version ${package_name}@${package_version} is already published; skipping npm publish."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "Version ${package_name}@${package_version} is not published; continuing."
+          fi
+
+      - name: Publish to npm
+        if: steps.release_mode.outputs.mode != 'skip' && steps.npm_version.outputs.published == 'false'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm run release
