@@ -96,3 +96,10 @@ npm run clean
 - Run `npm test` and `npm run typecheck` before committing.
 - Preserve generated file determinism and avoid hidden side effects.
 - Update docs when command behavior or generated outputs change.
+
+## Releases
+
+- Add a Changeset for any publishable change with `npm run changeset`.
+- Merges to `main` run CI and the release job in GitHub Actions.
+- If unreleased Changesets exist, the workflow opens or updates a release PR.
+- Merging that release PR publishes the package to npm using the `NPM_TOKEN` GitHub secret.

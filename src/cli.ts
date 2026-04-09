@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { readFileSync } from "node:fs";
 import { APP_NAME } from "./core/constants.js";
 import { runInit } from "./commands/init.js";
 import { runUpdate } from "./commands/update.js";
@@ -7,13 +8,15 @@ import { runReconcile } from "./commands/reconcile.js";
 import { resolveInteractiveCommand } from "./core/interactive.js";
 import { printBanner, printProgress } from "./core/ui.js";
 
+const APP_VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string };
+
 export async function runCli(argv = process.argv): Promise<void> {
   const resolvedArgv = await resolveInteractiveCommand(argv);
   printBanner();
 
   const program = new Command();
 
-  program.name(APP_NAME).description("Lightweight spec-driven development framework for brownfield AI agent workflows.").version("0.1.0");
+  program.name(APP_NAME).description("Lightweight spec-driven development framework for brownfield AI agent workflows.").version(APP_VERSION.version);
 
   program
     .command("init")
